@@ -1,12 +1,8 @@
-// Copyright 2017, Paul DeMarco.
-// All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
+//different widges used in the screens
 class ScanResultTile extends StatelessWidget {
   const ScanResultTile({Key? key, required this.result, this.onTap})
       : super(key: key);
@@ -31,34 +27,12 @@ class ScanResultTile extends StatelessWidget {
         ],
       );
     } else {
-      return Text(result.device.id.toString(),style: Theme.of(context).textTheme.caption,);
+      return Text(
+        result.device.id.toString(),
+        style: Theme.of(context).textTheme.caption,
+      );
       //return const Text("Kein GroundPasser");
     }
-  }
-
-  Widget _buildAdvRow(BuildContext context, String title, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Text(title, style: Theme.of(context).textTheme.caption),
-          const SizedBox(
-            width: 12.0,
-          ),
-          Expanded(
-            child: Text(
-              value,
-              style: Theme.of(context)
-                  .textTheme
-                  .caption
-                  ?.apply(color: Colors.black),
-              softWrap: true,
-            ),
-          ),
-        ],
-      ),
-    );
   }
 
   String getNiceHexArray(List<int> bytes) {
@@ -100,31 +74,18 @@ class ScanResultTile extends StatelessWidget {
           primary: Colors.black,
           onPrimary: Colors.white,
         ),
-        onPressed: (result.advertisementData.connectable && result.device.name == "GroundPasser") ? onTap : null,
+        onPressed: (result.advertisementData.connectable &&
+                result.device.name == "GroundPasser")
+            ? onTap
+            : null,
       ),
-      /*children: <Widget>[
-        _buildAdvRow(
-            context, 'Complete Local Name', result.advertisementData.localName),
-        _buildAdvRow(context, 'Tx Power Level',
-            '${result.advertisementData.txPowerLevel ?? 'N/A'}'),
-        _buildAdvRow(context, 'Manufacturer Data',
-            getNiceManufacturerData(result.advertisementData.manufacturerData)),
-        _buildAdvRow(
-            context,
-            'Service UUIDs',
-            (result.advertisementData.serviceUuids.isNotEmpty)
-                ? result.advertisementData.serviceUuids.join(', ').toUpperCase()
-                : 'N/A'),
-        _buildAdvRow(context, 'Service Data',
-            getNiceServiceData(result.advertisementData.serviceData)),
-      ],*/
     );
   }
 }
 
 class ServiceTile extends StatelessWidget {
   final BluetoothService service;
-  
+
   final List<CharacteristicTile> characteristicTiles;
 
   const ServiceTile(
@@ -134,46 +95,35 @@ class ServiceTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     //Zeige nur Services an mit der UUID "6E400001-B5A3-F393-E0A9-E50E24DCCA9E" --> UUID von der passenden Characterisitíc des RPI
-    if (characteristicTiles.isNotEmpty&& service.uuid.toString().toUpperCase() =="6E400001-B5A3-F393-E0A9-E50E24DCCA9E") {
+    if (characteristicTiles.isNotEmpty &&
+        service.uuid.toString().toUpperCase() ==
+            "6E400001-B5A3-F393-E0A9-E50E24DCCA9E") {
       //if (characteristicTiles.isNotEmpty) {
       return ExpansionTile(
         initiallyExpanded: true,
         title: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: const <Widget>[
-            Text('Wähle Spiel aus')
-            /*Text('0x${service.uuid.toString().toUpperCase()}',
-                style: Theme.of(context).textTheme.bodyText1?.copyWith(
-                    color: Theme.of(context).textTheme.caption?.color))*/
-          ],
+          children: const <Widget>[Text('Wähle Spiel aus')],
         ),
         children: characteristicTiles,
       );
     }
-    if (characteristicTiles.isNotEmpty&& service.uuid.toString().toUpperCase() =="6E400002-B5A3-F393-E0A9-E50E24DCCA9E") {
+    if (characteristicTiles.isNotEmpty &&
+        service.uuid.toString().toUpperCase() ==
+            "6E400002-B5A3-F393-E0A9-E50E24DCCA9E") {
       //if (characteristicTiles.isNotEmpty) {
       return ExpansionTile(
         initiallyExpanded: true,
         title: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: const <Widget>[
-            Text('Wähle Spiel aus')
-            /*Text('0x${service.uuid.toString().toUpperCase()}',
-                style: Theme.of(context).textTheme.bodyText1?.copyWith(
-                    color: Theme.of(context).textTheme.caption?.color))*/
-          ],
+          children: const <Widget>[Text('Wähle Spiel aus')],
         ),
         children: characteristicTiles,
       );
     } else {
       return Row();
-        /*ListTile(
-        title: const Text('Service'),
-        subtitle:
-            Text('0x${service.uuid.toString().toUpperCase()}'),
-      );*/
     }
   }
 }
@@ -201,14 +151,16 @@ class CharacteristicTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var text = "Kein gültiges Spiel erkannt";
-    var func= onStartGamePressed;
-    if(characteristic.uuid.toString().toUpperCase() =="6E400002-B5A3-F393-E0A9-E50E24DCCA9E"){
+    var func = onStartGamePressed;
+    if (characteristic.uuid.toString().toUpperCase() ==
+        "6E400002-B5A3-F393-E0A9-E50E24DCCA9E") {
       text = "Rondo";
       func = onStartGamePressed;
     }
-    if(characteristic.uuid.toString().toUpperCase() =="6E400003-B5A3-F393-E0A9-E50E24DCCA9E"){
-      text ="Spiel2";
-      func= onStartGamePressed2;
+    if (characteristic.uuid.toString().toUpperCase() ==
+        "6E400003-B5A3-F393-E0A9-E50E24DCCA9E") {
+      text = "Farbenspiel";
+      func = onStartGamePressed2;
     }
     return StreamBuilder<List<int>>(
       stream: characteristic.value,
@@ -221,17 +173,11 @@ class CharacteristicTile extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                /*const Text('Characteristic'),
-                Text(
-                    '0x${characteristic.uuid.toString().toUpperCase()}',
-                    style: Theme.of(context).textTheme.bodyText1?.copyWith(
-                        color: Theme.of(context).textTheme.caption?.color))*/
-                Text('Spiel "'+text+'"'),
-                Text(
-                    'Benötigte Zeit: ',
+                Text('Spiel "' + text + '"'),
+                Text('Benötigte Zeit: ',
                     style: Theme.of(context).textTheme.bodyText1?.copyWith(
                         color: Theme.of(context).textTheme.caption?.color)),
-                Text("Pass 1: " + utf8.decode(value!) )
+                Text("Pass 1: " + utf8.decode(value!))
               ],
             ),
             subtitle: Text(value.toString()),
@@ -260,8 +206,11 @@ class CharacteristicTile extends StatelessWidget {
                     color: Theme.of(context).iconTheme.color?.withOpacity(0.5)),
                 onPressed: onNotificationPressed,
               ),
-              ElevatedButton(onPressed: func,
-                  child: Text("Start "+text, style: const TextStyle(color: Colors.white)))
+              ElevatedButton(
+                  onPressed: func,
+                  child: Text("Start " + text,
+                      style: const TextStyle(
+                          color: Colors.white, backgroundColor: Colors.black)))
             ],
           ),
           //children: descriptorTiles,

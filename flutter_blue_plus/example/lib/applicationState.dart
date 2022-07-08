@@ -5,9 +5,8 @@ import 'package:firebase_auth/firebase_auth.dart'; // new
 import 'package:firebase_core/firebase_core.dart'; // new
 import 'package:flutter/material.dart';
 
-import 'firebase_options.dart';                    // new
-import 'src/authentication.dart';                  // new
-
+import 'firebase_options.dart'; // new
+import 'src/authentication.dart'; // new
 
 class ApplicationState extends ChangeNotifier {
   ApplicationState() {
@@ -44,12 +43,12 @@ class ApplicationState extends ChangeNotifier {
   }
 
   Future<void> verifyEmail(
-      String email,
-      void Function(FirebaseAuthException e) errorCallback,
-      ) async {
+    String email,
+    void Function(FirebaseAuthException e) errorCallback,
+  ) async {
     try {
       var methods =
-      await FirebaseAuth.instance.fetchSignInMethodsForEmail(email);
+          await FirebaseAuth.instance.fetchSignInMethodsForEmail(email);
       if (methods.contains('password')) {
         _loginState = ApplicationLoginState.password;
       } else {
@@ -63,10 +62,10 @@ class ApplicationState extends ChangeNotifier {
   }
 
   Future<void> signInWithEmailAndPassword(
-      String email,
-      String password,
-      void Function(FirebaseAuthException e) errorCallback,
-      ) async {
+    String email,
+    String password,
+    void Function(FirebaseAuthException e) errorCallback,
+  ) async {
     try {
       await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: email,
@@ -91,7 +90,8 @@ class ApplicationState extends ChangeNotifier {
       var credential = await FirebaseAuth.instance
           .createUserWithEmailAndPassword(email: email, password: password);
       await credential.user!.updateDisplayName(displayName);
-      await _createProfil(FirebaseAuth.instance.currentUser!.uid.toString(), FirebaseAuth.instance.currentUser!.displayName.toString());
+      await _createProfil(FirebaseAuth.instance.currentUser!.uid.toString(),
+          FirebaseAuth.instance.currentUser!.displayName.toString());
     } on FirebaseAuthException catch (e) {
       errorCallback(e);
     }
@@ -101,19 +101,21 @@ class ApplicationState extends ChangeNotifier {
     FirebaseAuth.instance.signOut();
   }
 
-  Future <void> _createProfil(String userId, String name) async{
-    FirebaseFirestore.instance.collection('profils').doc(userId).set(<String, dynamic>{
-      'bestzeit': 1000.46,
-      'dailyChamp': 0,
-      'fastStarter': 0,
-      'letzteZeit': 0.23,
-      'lvlUp': 0,
-      'name': name,
-      'nrOfExc': 0,
-      'points': 0,
-      'userId': userId,
-
-    })
+  Future<void> _createProfil(String userId, String name) async {
+    FirebaseFirestore.instance
+        .collection('profils')
+        .doc(userId)
+        .set(<String, dynamic>{
+          'bestzeit': 1000.46,
+          'dailyChamp': 0,
+          'fastStarter': 0,
+          'letzteZeit': 0.23,
+          'lvlUp': 0,
+          'name': name,
+          'nrOfExc': 0,
+          'points': 0,
+          'userId': userId,
+        })
         .then((value) => print("User Added"))
         .catchError((error) => print("Failed to add user: $error"));
   }

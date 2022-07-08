@@ -11,35 +11,30 @@ import 'gameInstance.dart';
 class PersonalScreen extends StatelessWidget {
   var userName = FirebaseAuth.instance.currentUser!.displayName.toString();
   var userId = FirebaseAuth.instance.currentUser!.uid.toString();
-  final Stream<QuerySnapshot> _playersStream = FirebaseFirestore.instance
+  //Stream to the Firestore database where all Instances of every player is stored
+  final Stream<QuerySnapshot> _gameInstancesStream = FirebaseFirestore.instance
       .collection('bestlist')
       .orderBy('timestamp', descending: true)
       .snapshots();
+  // Stream to th Firestore database where the profils for all registrated players are stored
   final Stream<QuerySnapshot> _profileStream = FirebaseFirestore.instance
       .collection('profils')
       .orderBy('userId')
       .snapshots();
+  //currently connected Bluetooth device
   final device;
   var backgroundColor = Colors.black;
 
-  var highscore =
-      GameInstance('nV', 'nV', 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
-
-  PersonalScreen(Stream<QuerySnapshot<Object?>> usersStream, this.device) {
-    //this._usersStream = usersStream;
-  }
+  PersonalScreen(this.device, {Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    var userName = FirebaseAuth.instance.currentUser!.displayName.toString();
-    var userId = FirebaseAuth.instance.currentUser!.uid.toString();
-    //_updateMyProfile();
-    print(userId);
+    //show the users name and the disconnect/connect button on top of the page
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.black,
         title: Text('$userName´s Übersicht',
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 35,
             )),
         actions: <Widget>[
@@ -80,19 +75,24 @@ class PersonalScreen extends StatelessWidget {
           )
         ],
       ),
+      //the body consists of four big parts 1) overviewv over the last runs of the logged in player
+      // 2) a detailed showing of his personal highscore 3) his points overview and 4) his badges overview
       body:
+          //start of 1) overview over the last runs of the logged in player
           ListView(shrinkWrap: true, scrollDirection: Axis.vertical, children: [
         Container(height: 5),
+        //headline
         const Center(
             child: Align(
                 alignment: Alignment.center,
                 child: Text('Versuche',
                     style: TextStyle(fontSize: 30, color: Colors.blueGrey)))),
         Container(height: 5),
+        //Scrollable List of all his GameInstance saved in the database
         SizedBox(
             height: 150,
             child: Flex(direction: Axis.horizontal, children: [
-              bestList(userId),
+              _buildLastRuns(userId),
             ])),
         Container(
           height: 5,
@@ -100,28 +100,35 @@ class PersonalScreen extends StatelessWidget {
               border:
                   Border(bottom: BorderSide(width: 1, color: Colors.blueGrey))),
         ),
+        // start of 2) a detailed showing of his personal highscore
+        //headline
         const Center(
             child: Align(
                 alignment: Alignment.center,
                 child: Text('Highscore',
                     style: TextStyle(fontSize: 30, color: Colors.blueGrey)))),
+        // total time of the personal highscore
         Center(
             child: Align(
           alignment: Alignment.centerLeft,
           child: _getHighscoreTotal(userId),
         )),
-        SizedBox(height: 150, child: _buildAlign(userId)),
+        //a timeline from the first to tenth goal with all ten split times and the total time until this point
+        SizedBox(height: 150, child: _buildPersonalHighscore(userId)),
         Container(
           height: 5,
           decoration: const BoxDecoration(
               border:
                   Border(bottom: BorderSide(width: 1, color: Colors.blueGrey))),
         ),
+        //start of 3) personal points overview
+        //headline
         const Center(
             child: Align(
                 alignment: Alignment.center,
                 child: Text('Punkte',
                     style: TextStyle(fontSize: 30, color: Colors.blueGrey)))),
+        //point overview with a short text about the current level, an percentage overview how many more points are needed for the next level and and overview over all levels
         _getPoints(),
         Container(
           height: 5,
@@ -129,17 +136,24 @@ class PersonalScreen extends StatelessWidget {
               border:
                   Border(bottom: BorderSide(width: 1, color: Colors.blueGrey))),
         ),
+        // start of 4) personal badges overview
+        //headline
         const Center(
             child: Align(
                 alignment: Alignment.center,
                 child: Text('Trophies',
                     textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 30, color: Colors.blueGrey)))),
+        // 4 subparts each with three potential trophies to reach. If the corresponding KPI from the database is 0
+        // all trophies are light grey. If it is more than zero the first one is colored bronze,
+        // if its more than 2the second is additionally colored silver. With more than four the last trophy is also
+        // coloured golden. Additionally the text is changing depending which badge the user has reached
         Row(
           children: [
             Column(
               children: [Container(width: 5)],
             ),
+            //subpart A) the Diligence Award. Here the player gets awarded if he exercises a lot
             Column(children: [
               _getIcons(Icons.fitness_center, 'nrOfExc'),
               Row(children: const [
@@ -147,6 +161,7 @@ class PersonalScreen extends StatelessWidget {
                     style: TextStyle(fontStyle: FontStyle.italic, fontSize: 20))
               ]),
               _getTrophyTexts('nrOfExc'),
+              //subpart B) the lvlUp Award. Here the player gets awarded if he is improving a lot
               _getIcons(Icons.offline_bolt, 'lvlUp'),
               Row(children: const [
                 Text('lvlUp ',
@@ -159,6 +174,7 @@ class PersonalScreen extends StatelessWidget {
             ),
             Column(
               children: [
+                //subpart C) the Best of the Rest Award. Here the player gets awarded if he is beating the allTime Highscore a lot
                 _getIcons(Icons.emoji_events, 'dailyChamp'),
                 Row(children: const [
                   Text('Highscorer ',
@@ -166,6 +182,8 @@ class PersonalScreen extends StatelessWidget {
                           TextStyle(fontStyle: FontStyle.italic, fontSize: 20))
                 ]),
                 _getTrophyTexts('dailyChamp'),
+                //subpart D) the Surprise Award. Here the player doesn't know what he has to do to gain these trophies until
+                // he reached the golden Trophy. In reality he needs to be a "fastStarter" so be faster in the first half of his runthroughs than in the second half
                 _getIcons(Icons.question_mark, 'fastStarter'),
                 Row(children: const [
                   Text('Überraschung',
@@ -182,19 +200,21 @@ class PersonalScreen extends StatelessWidget {
     );
   }
 
-  StreamBuilder _buildAlign(String userId) {
+  // methods needed to get the live data needed from the databases and to get them in nice form to display
+  StreamBuilder _buildPersonalHighscore(String userId) {
     return StreamBuilder<QuerySnapshot>(
-        stream: _playersStream,
+        stream: _gameInstancesStream,
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-          if (!snapshot.hasData) return new Text('Loading...');
-          return getAlignRow(snapshot, userId);
+          if (!snapshot.hasData) return const Text('Loading...');
+          return getPersonalHighscore(snapshot, userId);
         });
   }
 
-  Align getAlignRow(
+  Align getPersonalHighscore(
       AsyncSnapshot<QuerySnapshot<Object?>> snapshot, String userId) {
-    Align result = Align();
-    var bestzeit = GameInstance('', '', 1000000.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    Align result = const Align();
+    var bestzeit =
+        GameInstance('', '', 1000000.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     snapshot.data!.docs.map((DocumentSnapshot document) {
       Map<String, dynamic> data = document.data()! as Map<String, dynamic>;
       //neuen Eintrag als Instanz abspeichern
@@ -224,7 +244,7 @@ class PersonalScreen extends StatelessWidget {
           child: Timeline.tileBuilder(
             theme: TimelineThemeData(
               direction: Axis.horizontal,
-              connectorTheme: ConnectorThemeData(
+              connectorTheme: const ConnectorThemeData(
                   space: 10, thickness: 3, color: Colors.blueGrey),
             ),
             builder: TimelineTileBuilder.fromStyle(
@@ -259,17 +279,18 @@ class PersonalScreen extends StatelessWidget {
 
   StreamBuilder _getHighscoreTotal(String userId) {
     return StreamBuilder<QuerySnapshot>(
-        stream: _playersStream,
+        stream: _gameInstancesStream,
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-          if (!snapshot.hasData) return new Text('Loading...');
+          if (!snapshot.hasData) return const Text('Loading...');
           return getHighscoreRow(snapshot, userId);
         });
   }
 
   Text getHighscoreRow(
       AsyncSnapshot<QuerySnapshot<Object?>> snapshot, String userId) {
-    Text result = Text('');
-    var bestzeit = GameInstance('', '', 1000000.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    Text result = const Text('');
+    var bestzeit =
+        GameInstance('', '', 1000000.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     snapshot.data!.docs.map((DocumentSnapshot document) {
       Map<String, dynamic> data = document.data()! as Map<String, dynamic>;
       //neuen Eintrag als Instanz abspeichern
@@ -296,18 +317,19 @@ class PersonalScreen extends StatelessWidget {
       }
       var str =
           '  Gesamtzeit: ' + bestzeit.getTotal().substring(0, 6) + ' Sekunden';
-      result = Text(str, style: TextStyle(fontSize: 15, color: Colors.black));
+      result =
+          Text(str, style: const TextStyle(fontSize: 15, color: Colors.black));
     }).toList();
     return result;
   }
 
   List<GameInstance> playerList = [];
 
-  StreamBuilder bestList(uID) {
+  StreamBuilder _buildLastRuns(uID) {
     return StreamBuilder<QuerySnapshot>(
-      stream: _playersStream,
+      stream: _gameInstancesStream,
       builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-        if (!snapshot.hasData) return new Text('Loading...');
+        if (!snapshot.hasData) return const Text('Loading...');
         return Expanded(
             child: SingleChildScrollView(
                 child: DataTable(columns: const <DataColumn>[
@@ -329,12 +351,12 @@ class PersonalScreen extends StatelessWidget {
               style: TextStyle(fontStyle: FontStyle.italic),
             ),
           ),
-        ], rows: getRows(snapshot, uID))));
+        ], rows: getRowsLastRuns(snapshot, uID))));
       },
     );
   }
 
-  List<DataRow> getRows(
+  List<DataRow> getRowsLastRuns(
       AsyncSnapshot<QuerySnapshot<Object?>> snapshot, String uID) {
     List<DataRow> result = [];
     playerList = [];
@@ -375,7 +397,7 @@ class PersonalScreen extends StatelessWidget {
     return StreamBuilder<QuerySnapshot>(
         stream: _profileStream,
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-          if (!snapshot.hasData) return new Text('Loading...');
+          if (!snapshot.hasData) return const Text('Loading...');
           return getPointRow(snapshot, userId);
         });
   }
@@ -449,7 +471,7 @@ class PersonalScreen extends StatelessWidget {
             ),
             progressColor: Colors.blueGrey,
           ),
-          Text(
+          const Text(
               'Level 0 - B Klasse: 0-100 Punkte \n Level 1 - Kreisliga: 100-500 Punkte \n Level 2 - Regionalliga: 500-1000 Punkte \n Level 3 - Bundesliga: >1000 Punkte')
         ]);
       }
@@ -461,9 +483,8 @@ class PersonalScreen extends StatelessWidget {
     return StreamBuilder<QuerySnapshot>(
         stream: _profileStream,
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-          if (!snapshot.hasData) return new Text('Loading...');
+          if (!snapshot.hasData) return const Text('Loading...');
           return getIconRows(snapshot, userId, icon, challengeIndikator);
-          print('Test');
         });
   }
 
@@ -531,9 +552,8 @@ class PersonalScreen extends StatelessWidget {
     return StreamBuilder<QuerySnapshot>(
         stream: _profileStream,
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-          if (!snapshot.hasData) return new Text('Loading...');
+          if (!snapshot.hasData) return const Text('Loading...');
           return _getFleisPreisText(snapshot, userId, challengeIndikator);
-          print('Test');
         });
   }
 

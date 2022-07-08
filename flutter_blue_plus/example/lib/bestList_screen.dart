@@ -6,18 +6,18 @@ import 'gameInstance.dart';
 
 class BestListScreen extends StatelessWidget {
   var backgroundColor = Colors.black;
-  final _usersStream;
+  final _gameInstancesStream;
   final device;
-  final myProfile;
-  BestListScreen(Stream<QuerySnapshot<Object?>> this._usersStream, this.device,
-      this.myProfile);
+  BestListScreen(
+      Stream<QuerySnapshot<Object?>> this._gameInstancesStream, this.device);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+        //show the headline 'Teamoverview' and the disconnect/connect button on top of the page
         appBar: AppBar(
           backgroundColor: Colors.black,
-          title: Text(''),
+          title: const Text('Teamübersicht'),
           actions: <Widget>[
             StreamBuilder<BluetoothDeviceState>(
               stream: device.state,
@@ -57,6 +57,7 @@ class BestListScreen extends StatelessWidget {
             )
           ],
         ),
+        // body has two parts: 1) a scrollable list of every personal highscore from the registrated persons and a button toget to the prsonal overview
         body: ListView(children: [
           Container(height: 20),
           const Center(
@@ -72,17 +73,17 @@ class BestListScreen extends StatelessWidget {
             Column(
               children: [Container(width: 190)],
             ),
+            //Button to the next page
             Column(children: [
               ElevatedButton.icon(
                   label: const Text('Persönliche Übersicht'),
-                  icon: Icon(Icons.analytics_outlined),
+                  icon: const Icon(Icons.analytics_outlined),
                   style: ElevatedButton.styleFrom(
                     primary: Colors.black,
                   ),
                   onPressed: () => Navigator.of(context).push(
                         MaterialPageRoute(
-                            builder: (context) =>
-                                PersonalScreen(_usersStream, device)),
+                            builder: (context) => PersonalScreen(device)),
                       ))
             ]),
             Column()
@@ -90,6 +91,7 @@ class BestListScreen extends StatelessWidget {
         ]));
   }
 
+  //methods needed to get the data from the databases and get them into a nice form
   List<GameInstance> playerList = [];
 
   bool _checkIfBestTime(GameInstance currentPlayer) {
@@ -110,7 +112,7 @@ class BestListScreen extends StatelessWidget {
 
   StreamBuilder bestList() {
     return StreamBuilder<QuerySnapshot>(
-      stream: _usersStream,
+      stream: _gameInstancesStream,
       builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
         if (!snapshot.hasData) return const Text('Loading...');
         return DataTable(columns: const <DataColumn>[

@@ -54,7 +54,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '972021808458',
     projectId: 'groundpasser',
     storageBucket: 'groundpasser.appspot.com',
-    iosClientId: '972021808458-o4no8spuan1fd5aghn4f0p1b2l9mt57j.apps.googleusercontent.com',
+    iosClientId:
+        '972021808458-o4no8spuan1fd5aghn4f0p1b2l9mt57j.apps.googleusercontent.com',
     iosBundleId: 'groundpasser.app',
   );
 }

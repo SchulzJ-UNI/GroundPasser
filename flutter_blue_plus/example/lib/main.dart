@@ -1,15 +1,9 @@
-// Copyright 2017, Paul DeMarco.
-// All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'device_screen.dart';
-import 'organizeGameInstance.dart';
 import 'package:firebase_core/firebase_core.dart';
 
 import 'firebase_options.dart';
@@ -18,12 +12,12 @@ import 'package:provider/provider.dart'; // new
 import 'widgets.dart';
 import 'applicationState.dart';
 
+//run App and Start application state for authentication uses
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  //runApp(const FlutterBlueApp());
   runApp(
     ChangeNotifierProvider(
       create: (context) => ApplicationState(),
@@ -39,6 +33,7 @@ class GroundPasserApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       color: Colors.lightBlue,
+      //get all available bluetooth devices
       home: StreamBuilder<BluetoothState>(
           stream: FlutterBluePlus.instance.state,
           initialData: BluetoothState.unknown,
@@ -47,15 +42,16 @@ class GroundPasserApp extends StatelessWidget {
             if (state == BluetoothState.on) {
               return const FindDevicesScreen();
             }
+            // if bluetooth = off go to BluetoothOffScreen
             return BluetoothOffScreen(state: state);
           }),
     );
   }
 }
 
+// Bluetooth Off Screen just shows a blue screen with a button to switch on the devices Bluetooth
 class BluetoothOffScreen extends StatelessWidget {
   const BluetoothOffScreen({Key? key, this.state}) : super(key: key);
-
   final BluetoothState? state;
 
   @override
@@ -91,6 +87,8 @@ class BluetoothOffScreen extends StatelessWidget {
   }
 }
 
+//Find DevicesScreen. lists all available devices and adds an "open" button to it to connect it with this device
+// and brings us to the "devices screen with the bluetooth device if the selected device
 class FindDevicesScreen extends StatelessWidget {
   const FindDevicesScreen({Key? key}) : super(key: key);
 

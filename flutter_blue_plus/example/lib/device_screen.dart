@@ -1,6 +1,5 @@
 import 'package:GroundPasserApp/bestList_screen.dart';
 import 'package:GroundPasserApp/personalScreen.dart';
-import 'package:GroundPasserApp/profile.dart';
 import 'package:GroundPasserApp/src/authentication.dart';
 import 'package:GroundPasserApp/widgets.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -12,17 +11,21 @@ import 'applicationState.dart';
 import 'organizeGameInstance.dart';
 
 class DeviceScreen extends StatelessWidget {
-  final Stream<QuerySnapshot> _usersStream = FirebaseFirestore.instance
+  //Stream to get all instances from the firebase document "bestlist". Here all runs of the game (instances) are saved
+  final Stream<QuerySnapshot> _gameInstancesStream = FirebaseFirestore.instance
       .collection('bestlist')
       .orderBy('total', descending: false)
       .snapshots();
 
   DeviceScreen({Key? key, required this.device}) : super(key: key);
 
+// chosen Bluetooth device is saved and pushed to all pages
   final BluetoothDevice device;
-  var myProfile = Profile('nV', 'nV', 0, 0, 0, 0, 0, 0,0);
-  var allTimeHs = 0;
 
+  // a method that is called later. It returns a list with all available Bluetooth services from the connected device,
+  // adds a button if the Characteristic is writeable. If this button is pressed it sets the Characteristic on the remote device notifyable
+  // a bit is sent to the characteristic running on the remote device, an new OrganizeGame Instance is created, which listens to all the
+  // responses from the remote device, oranize and save them in the database
   List<Widget> _buildServiceTiles(List<BluetoothService> services) {
     return services
         .map(
@@ -32,13 +35,6 @@ class DeviceScreen extends StatelessWidget {
                 .map(
                   (c) => CharacteristicTile(
                       characteristic: c,
-                      /*onReadPressed: () => c.read(),
-                    onWritePressed: () async {
-                     await c.write([0x12], withoutResponse: true);
-
-                      //await c.write([0x12]);
-                     var antwort = await c.read();
-                    },*/
                       onNotificationPressed: () async {
                         await c.setNotifyValue(!c.isNotifying);
                         //await c.read();
@@ -46,16 +42,12 @@ class DeviceScreen extends StatelessWidget {
                       onStartGamePressed: () async {
                         await c.setNotifyValue(true);
                         await c.write([0x12], withoutResponse: true);
-                        //await _updateMyProfile();
-                        //await _getAllTimeHS();
                         OrganizeGameInstance(
                             c,
                             FirebaseAuth.instance.currentUser!.displayName
                                 .toString(),
                             FirebaseAuth.instance.currentUser!.uid.toString());
-                        //await c.write([0x12]);
                         await c.read();
-
                       },
                       onStartGamePressed2: () {}
                       /*
@@ -80,6 +72,7 @@ class DeviceScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     var backgroundColor = Colors.black;
     return Scaffold(
+      // build App Bar with the devices name and a button to Connect/ Disconnect to the device in the Title section
       appBar: AppBar(
         backgroundColor: Colors.black,
         title: Text(device.name),
@@ -96,6 +89,7 @@ class DeviceScreen extends StatelessWidget {
                   onPressed = () => device.disconnect();
                   text = 'DISCONNECT';
                   break;
+                // the connect button will be red so the users recognize if the device is disconnected
                 case BluetoothDeviceState.disconnected:
                   backgroundColor = Colors.red;
                   onPressed = () => device.connect();
@@ -121,9 +115,11 @@ class DeviceScreen extends StatelessWidget {
           )
         ],
       ),
+      // the body ( main part of the page consists of different parts)
       body: SingleChildScrollView(
         child: Column(
           children: <Widget>[
+            // first a area where the connected device with some information to it (e.g. UUID) is shown
             StreamBuilder<BluetoothDeviceState>(
               stream: device.state,
               initialData: BluetoothDeviceState.connecting,
@@ -140,6 +136,7 @@ class DeviceScreen extends StatelessWidget {
                   builder: (c, snapshot) => IndexedStack(
                     index: snapshot.data! ? 1 : 0,
                     children: <Widget>[
+                      //then a button is implemented that discover the Bluetooth Series of the Device and save them
                       IconButton(
                         icon: const Icon(Icons.refresh),
                         onPressed: () => device.discoverServices(),
@@ -159,7 +156,8 @@ class DeviceScreen extends StatelessWidget {
                 ),
               ),
             ),
-
+            // the a button to manage the authentication is shown below.
+            //Here the user can Login/Register (depending if he already has an account) or Logout
             Consumer<ApplicationState>(
               builder: (context, appState, _) => Authentication(
                 email: appState.email,
@@ -172,6 +170,9 @@ class DeviceScreen extends StatelessWidget {
                 signOut: appState.signOut,
               ),
             ),
+
+            // below that services that were saved before are all shown in a list inlcuding a button to send them a message
+            // (which in our case means the game logic on the hardware device will start) if this characteristic is writable
             StreamBuilder<List<BluetoothService>>(
               stream: device.services,
               initialData: const [],
@@ -181,23 +182,29 @@ class DeviceScreen extends StatelessWidget {
                 );
               },
             ),
+            //Lastly two buttons are added to switch to team overview ...
             ElevatedButton.icon(
-                label: const Text('Teamübersicht'),
-                icon: Icon(Icons.format_list_numbered_outlined ),
-                style: ElevatedButton.styleFrom(primary: Colors.black, ),
+              label: const Text('Teamübersicht'),
+              icon: const Icon(Icons.format_list_numbered_outlined),
+              style: ElevatedButton.styleFrom(
+                primary: Colors.black,
+              ),
               onPressed: () => Navigator.of(context).push(MaterialPageRoute(
-                  builder: (context) => BestListScreen(_usersStream, device, myProfile))),
-                ),
+                  builder: (context) =>
+                      BestListScreen(_gameInstancesStream, device))),
+            ),
             Container(height: 20),
+            // or the personal overview
             ElevatedButton.icon(
                 label: const Text('Persönliche Übersicht'),
-                icon: Icon(Icons.analytics_outlined),
-                style: ElevatedButton.styleFrom(primary: Colors.black, ),
-                onPressed: () => Navigator.of(context).push(MaterialPageRoute(
-                    builder: (context) => PersonalScreen(_usersStream, device)),
-                ))
-
-            // to here
+                icon: const Icon(Icons.analytics_outlined),
+                style: ElevatedButton.styleFrom(
+                  primary: Colors.black,
+                ),
+                onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                          builder: (context) => PersonalScreen(device)),
+                    ))
           ],
         ),
       ),
