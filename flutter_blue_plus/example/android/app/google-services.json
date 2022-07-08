@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "972021808458",
+    "project_id": "groundpasser",
+    "storage_bucket": "groundpasser.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:972021808458:android:c7553841576f73c11b95b3",
+        "android_client_info": {
+          "package_name": "com.boskokg.flutter_blue_plus_example"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "972021808458-j9lj3137u3s6j1r5j71ls11fqlbi0ja0.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA_q5kMCmS0u5DAOTTcMHLZHlc1ClLkf-k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "972021808458-j9lj3137u3s6j1r5j71ls11fqlbi0ja0.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "972021808458-o4no8spuan1fd5aghn4f0p1b2l9mt57j.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "groundpasser.app"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

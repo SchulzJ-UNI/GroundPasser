@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>972021808458-o4no8spuan1fd5aghn4f0p1b2l9mt57j.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.972021808458-o4no8spuan1fd5aghn4f0p1b2l9mt57j</string>
+	<key>API_KEY</key>
+	<string>AIzaSyAY4xesr3Wx-R5Zzj4IlJd60kJq5insYyQ</string>
+	<key>GCM_SENDER_ID</key>
+	<string>972021808458</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>groundpasser.app</string>
+	<key>PROJECT_ID</key>
+	<string>groundpasser</string>
+	<key>STORAGE_BUCKET</key>
+	<string>groundpasser.appspot.com</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:972021808458:ios:86fa933ab780a8141b95b3</string>
+</dict>
+</plist>
